@@ -7,6 +7,7 @@ using UnityEngine.AI;
 public abstract class WorkerController : MonoBehaviour
 {
     protected NavMeshAgent agent;
+    protected Animator animator;
     [SerializeField] protected float speed = 10f;
     [SerializeField] protected float speedMining = 1f;
     [SerializeField] protected float amountMining = 1f;
@@ -16,7 +17,19 @@ public abstract class WorkerController : MonoBehaviour
     public virtual void Start()
     {
         agent = GetComponent<NavMeshAgent>();
+        animator = GetComponent<Animator>();
         agent.speed = speed;
+    }
+    private void Update()
+    {
+        animator.SetFloat("Run", GetAgentVelocity());
+    }
+
+    private float GetAgentVelocity()
+    {
+        Vector3 velocity = agent.velocity;
+        Vector3 getZVelocity = transform.InverseTransformDirection(velocity);
+        return getZVelocity.z;
     }
 
     public void OnFire()

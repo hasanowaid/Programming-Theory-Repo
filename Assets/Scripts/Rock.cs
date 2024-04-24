@@ -8,15 +8,12 @@ public class Rock : MonoBehaviour
 {
     [SerializeField] private float rockHardness = 5f;
     [SerializeField] private float waitForSeconds = 5f;
-    [SerializeField] private float speedAlpha = 2f;
-    [SerializeField] private Transform UIMining;
+    [SerializeField] private int amount = 1;
     [SerializeField] private GameObject UIBar;
     [SerializeField] private GameObject UITextPrefab;
+    [SerializeField] private GameObject rockPrefab;
     public bool IsAvailable { get; private set; }
-    private void Start()
-    {
-        UIBarControl(false);
-    }
+
     public void Mining(Worker worker)
     {
         StartCoroutine(BeginMining(worker));
@@ -25,39 +22,41 @@ public class Rock : MonoBehaviour
     private IEnumerator BeginMining(Worker worker)
     {
         IsAvailable = true;
-        UIBarControl(true);
+        GameObject bar = InstantiateBar();
+        Transform barAnim = bar.transform.GetChild(0).transform;
         float miningTime = 0f;
         while (miningTime < rockHardness)
         {
             yield return new WaitForSeconds(waitForSeconds);
             miningTime += worker.SpeedMining;
             float divideBy = worker.SpeedMining / rockHardness;
-            UIMining.localScale = new Vector3(UIMining.localScale.x - divideBy, 1, 1);
-            TextMiningControl(worker.AmountMining);
+            barAnim.localScale = new Vector3(barAnim.localScale.x - divideBy, 1, 1);
+            TextMiningControl();
+            GameMananger.instance.IncreaseRocks(amount);
         }
+        Destroy(bar);
         worker.ReturnToFactor();
         OnWorkerFinish();
     }
 
-    private void TextMiningControl(float amountMining)
+    private void TextMiningControl()
     {
         GameObject textMining = Instantiate(UITextPrefab, transform);
         textMining.transform.localPosition = Vector3.up; 
         Text getText = textMining.GetComponentInChildren<Text>();
-        getText.text = amountMining.ToString();
+        getText.text = amount.ToString();
     }
 
     private void OnWorkerFinish()
     {
-        Transform ParentPosition = transform.parent;
-        GameMananger.instance.GetParentRock(ParentPosition);
-        UIBarControl(false);
+        GameMananger.instance.GetParentRock(transform, rockPrefab);
         gameObject.SetActive(false);
         Destroy(gameObject, 0.5f);
     }
 
-    private void UIBarControl(bool active)
+    private GameObject InstantiateBar()
     {
-        UIBar.gameObject.SetActive(active);
+        Vector3 barPoition = transform.position + Vector3.up;
+        return Instantiate(UIBar, barPoition,Quaternion.identity);
     }
 }

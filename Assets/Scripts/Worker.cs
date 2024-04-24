@@ -9,7 +9,6 @@ public class Worker : WorkerController
     private bool selected = false;
     public bool IsWorking { get; private set; }
     public float SpeedMining => speedMining;
-    public float AmountMining => amountMining;
 
     public override void Start()
     {
@@ -45,6 +44,7 @@ public class Worker : WorkerController
 
     public void ReturnToFactor()
     {
+        animator.SetBool("Mining", false);
         selected = false;
         agent.isStopped = false;
         agent.destination = currentPosition;
@@ -52,6 +52,7 @@ public class Worker : WorkerController
 
     public override void ChoosingRock(Rock rock)
     {
+        iconSelected.SetActive(false);
         StartCoroutine(CheckDistiance(rock));
     }
 
@@ -68,6 +69,7 @@ public class Worker : WorkerController
         else
         {
             while (!UpdateDistance(rock.transform.position, workDistance)) yield return null;
+            animator.SetBool("Mining", true);
             agent.isStopped = true;
             rock.Mining(this);
         }
